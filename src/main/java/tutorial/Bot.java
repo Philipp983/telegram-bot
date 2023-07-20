@@ -3,7 +3,6 @@ package tutorial;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
@@ -28,16 +27,6 @@ public class Bot extends TelegramLongPollingBot {
     }
 
     @Override
-    public String getBotUsername() {
-        return System.getenv("BOT_USERNAME");
-    }
-
-    @Override
-    public String getBotToken() {
-        return System.getenv("BOT_TOKEN");
-    }
-
-    @Override
     public void onUpdateReceived(Update update) {
         var msg = update.getMessage();
         var user = msg.getFrom();
@@ -55,18 +44,24 @@ public class Bot extends TelegramLongPollingBot {
 
         if (gamestate) {
             if (txt.equals("Lets start with the first question")) {
-                Quiz quiz = new Quiz();
+                currentQuestion = quiz.getRandomQuestion();
+                sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
+            } else if (txt.equals(currentQuestion.getSolution())) {
+                gamelevel++;
+                sendMenu(id, "You are right! \n\tLets go to next question", createPlayMenu(currentQuestion));
                 currentQuestion = quiz.getRandomQuestion();
                 sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
             }
-        }
 
-        if (currentQuestion.getSolution().equals(txt)) {
-            gamelevel++;
-            System.out.println("You are right");
         }
     }
 
+    /*
+    if (currentQuestion.getSolution().equals(txt)) {
+            gamelevel++;
+            System.out.println("You are right");
+        }
+     */
 
     public void sendMenu(Long who, String txt, ReplyKeyboardMarkup buttons) {
         SendMessage sm = SendMessage.builder().chatId(who.toString())
@@ -106,6 +101,16 @@ public class Bot extends TelegramLongPollingBot {
         keyboard.add(row);
         keyboardMarkup.setKeyboard(keyboard);
         return keyboardMarkup;
+    }
+
+    @Override
+    public String getBotUsername() {
+        return System.getenv("BOT_USERNAME");
+    }
+
+    @Override
+    public String getBotToken() {
+        return System.getenv("BOT_TOKEN");
     }
 
 }

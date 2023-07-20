@@ -32,4 +32,8 @@ public class Question {
     public String getSolution() {
         return solution;
     }
+
+    public String getTitle() {
+        return title;
+    }
 }

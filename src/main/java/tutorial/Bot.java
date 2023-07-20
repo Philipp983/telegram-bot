@@ -44,24 +44,17 @@ public class Bot extends TelegramLongPollingBot {
 
         if (gamestate) {
             if (txt.equals("Lets start with the first question")) {
-                currentQuestion = quiz.getRandomQuestion();
+                currentQuestion = quiz.getRandomQuestion(gamelevel);
                 sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
             } else if (txt.equals(currentQuestion.getSolution())) {
                 gamelevel++;
                 sendMenu(id, "You are right! \n\tLets go to next question", createPlayMenu(currentQuestion));
-                currentQuestion = quiz.getRandomQuestion();
+                currentQuestion = quiz.getRandomQuestion(gamelevel);
                 sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
             }
 
         }
     }
-
-    /*
-    if (currentQuestion.getSolution().equals(txt)) {
-            gamelevel++;
-            System.out.println("You are right");
-        }
-     */
 
     public void sendMenu(Long who, String txt, ReplyKeyboardMarkup buttons) {
         SendMessage sm = SendMessage.builder().chatId(who.toString())

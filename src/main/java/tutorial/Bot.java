@@ -4,6 +4,7 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -37,20 +38,34 @@ public class Bot extends TelegramLongPollingBot {
             if (txt.equals("/startgame")) {
                 sendMenu(id, "Hello to the game \n\t Who wants to be a millionaire! ", createWelcomingMenu());
                 gamestate = true;
-            } else {
+            } else if (txt.equals("Lets start again!")) {
+                sendMenu(id, "Hello to the game \n\t Who wants to be a millionaire! ", createWelcomingMenu());
+                gamestate = true;
+            }
                 //sendMessage(id, "I don't understand you");
             }
-        }
+
 
         if (gamestate) {
-            if (txt.equals("Lets start with the first question")) {
+            if (txt.equals("Lets start with the first question") || txt.equals("Lets start again!")) {
                 currentQuestion = quiz.getRandomQuestion(gamelevel);
                 sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
             } else if (txt.equals(currentQuestion.getSolution())) {
                 gamelevel++;
-                sendMenu(id, "You are right! \n\tLets go to next question", createPlayMenu(currentQuestion));
-                currentQuestion = quiz.getRandomQuestion(gamelevel);
-                sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
+                if (gamelevel >= quiz.getQuestionCategories().size()) {
+                    sendMenu(id, "Congratulations! You answered all questions correctly!", null);
+                    gamestate = false;
+                    gamelevel = 0;
+                } else {
+                    sendMenu(id, "You are right! \n\tLets go to the next question", createPlayMenu(currentQuestion));
+                    currentQuestion = quiz.getRandomQuestion(gamelevel);
+                    sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
+                }
+            } else {
+                // Wrong answer
+                sendMenu(id, "Sorry, wrong answer! Game ends now.", startOver());
+                gamestate = false;
+                gamelevel = 0;
             }
 
         }
@@ -59,13 +74,25 @@ public class Bot extends TelegramLongPollingBot {
     public void sendMenu(Long who, String txt, ReplyKeyboardMarkup buttons) {
         SendMessage sm = SendMessage.builder().chatId(who.toString())
                 .parseMode("HTML").text(txt)
-                .replyMarkup(buttons).build();
+                .replyMarkup(buttons != null ? buttons : new ReplyKeyboardRemove()).build();
 
         try {
             execute(sm);
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
+    }
+    public ReplyKeyboardMarkup startOver() {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setResizeKeyboard(true);
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow row = new KeyboardRow();
+
+        row.add(new KeyboardButton("Lets start again!"));
+        keyboard.add(row);
+        keyboardMarkup.setKeyboard(keyboard);
+        return keyboardMarkup;
     }
 
     public ReplyKeyboardMarkup createPlayMenu(Question question) {
@@ -107,3 +134,4 @@ public class Bot extends TelegramLongPollingBot {
     }
 
 }
+

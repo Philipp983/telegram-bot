@@ -46,16 +46,20 @@ public class Bot extends TelegramLongPollingBot {
                         "We start with the 100€ question", createWelcomingMenu());
                 gamelevel = 0;
                 gamestate = true;
+            }else if (txt.equals("Lets start with the first question")) {
+                sendMenu(id, "Hello to the game \n\nWho wants to be a millionaire!\n\n " +
+                        "We start with the 100€ question", createWelcomingMenu());
+                gamelevel = 0;
+                gamestate = true;
             }
                 //sendMessage(id, "I don't understand you");
             }
 
 
         if (gamestate) {
-            if (txt.equals("Lets start with the first question") || txt.equals("Lets start again!") || txt.equals("/startgame")) {
-                currentQuestion = quiz.getRandomQuestion(gamelevel);
-                sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
-            } else if (txt.equals(currentQuestion.getSolution())) {
+            currentQuestion = quiz.getRandomQuestion(gamelevel);
+            sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
+            }if (txt.equals(currentQuestion.getSolution())) {
                 gamelevel++;
                 if (gamelevel >= quiz.getQuestionCategories().size()) {
                     sendMenu(id, "Congratulations! You answered all questions correctly!", startOver());
@@ -75,7 +79,7 @@ public class Bot extends TelegramLongPollingBot {
             }
 
         }
-    }
+
 
     public void sendMenu(Long who, String txt, ReplyKeyboardMarkup buttons) {
         SendMessage sm = SendMessage.builder().chatId(who.toString())

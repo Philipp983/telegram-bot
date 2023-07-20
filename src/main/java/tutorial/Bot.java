@@ -10,7 +10,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import tutorial.quiz.Question;
 import tutorial.quiz.Quiz;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,11 +19,13 @@ public class Bot extends TelegramLongPollingBot {
     private boolean gamestate;
     private int gamelevel;
     private Question currentQuestion;
+    private int[] pricepool;
 
     public Bot() {
         this.quiz = new Quiz(); // Initialize the quiz instance
         this.gamestate = false; // Initialize the gamestate to false
         this.gamelevel = 0; // Initialize the gamelevel to 0
+        this.pricepool = new int[]{100, 1000, 16000, 64000, 1000000};
     }
 
     @Override
@@ -35,11 +36,15 @@ public class Bot extends TelegramLongPollingBot {
         var txt = msg.getText();
 
         if (update.hasMessage()) {
-            if (txt.equals("/startgame")) {
-                sendMenu(id, "Hello to the game \n\t Who wants to be a millionaire! ", createWelcomingMenu());
+            if (txt.equals("/startgame")){
+                sendMenu(id, "Hello to the game\n\nWho wants to be a millionaire!\n\n " +
+                        "We start with the 100€ question", createWelcomingMenu());
+                gamelevel = 0;
                 gamestate = true;
             } else if (txt.equals("Lets start again!")) {
-                sendMenu(id, "Hello to the game \n\t Who wants to be a millionaire! ", createWelcomingMenu());
+                sendMenu(id, "Hello to the game \n\nWho wants to be a millionaire!\n\n " +
+                        "We start with the 100€ question", createWelcomingMenu());
+                gamelevel = 0;
                 gamestate = true;
             }
                 //sendMessage(id, "I don't understand you");
@@ -47,17 +52,18 @@ public class Bot extends TelegramLongPollingBot {
 
 
         if (gamestate) {
-            if (txt.equals("Lets start with the first question") || txt.equals("Lets start again!")) {
+            if (txt.equals("Lets start with the first question") || txt.equals("Lets start again!") || txt.equals("/startgame")) {
                 currentQuestion = quiz.getRandomQuestion(gamelevel);
                 sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
             } else if (txt.equals(currentQuestion.getSolution())) {
                 gamelevel++;
                 if (gamelevel >= quiz.getQuestionCategories().size()) {
-                    sendMenu(id, "Congratulations! You answered all questions correctly!", null);
+                    sendMenu(id, "Congratulations! You answered all questions correctly!", startOver());
                     gamestate = false;
                     gamelevel = 0;
                 } else {
-                    sendMenu(id, "You are right! \n\tLets go to the next question", createPlayMenu(currentQuestion));
+                    sendMenu(id, "You are right! \n\tLets go to the next question. \n\t" +
+                            "This question is worth " + pricepool[gamelevel] + "€", createPlayMenu(currentQuestion));
                     currentQuestion = quiz.getRandomQuestion(gamelevel);
                     sendMenu(id, currentQuestion.getText(), createPlayMenu(currentQuestion));
                 }

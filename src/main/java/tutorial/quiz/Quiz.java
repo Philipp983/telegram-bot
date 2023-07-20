@@ -110,7 +110,7 @@ public class Quiz {
 
 
     public Question getRandomQuestion(int gameLevel) {
-        if (gameLevel >= 0 && gameLevel < questionCategories.size()) {
+        if (gameLevel >= 0) {
             List<Question> category = questionCategories.get(gameLevel);
             Random r = new Random();
             int index = r.nextInt(category.size());
